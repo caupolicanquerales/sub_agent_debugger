@@ -9,13 +9,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import com.capo.sub_agent_debugger.response.DataDefects;
 import com.capo.sub_agent_debugger.response.DataMessage;
-import com.capo.sub_agent_debugger.response.DataStepPlanError;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @Service
-public class ExecutingDebuggerService {
+public class ExecutingAnalyzerService {
 	
 	private final ChatClient chatClient;
 	private final String systemPrompt;
@@ -23,8 +23,8 @@ public class ExecutingDebuggerService {
 	private final RedisTemplate<String, Object> redisTemplate;
 	private final static String SHOW_VS_CODE="step_actions";
 	
-	public ExecutingDebuggerService(@Qualifier("chatClientGeneral") ChatClient chatClient,
-			@Qualifier("systemPrompt") String systemPrompt,
+	public ExecutingAnalyzerService(@Qualifier("chatClientAnalyzer") ChatClient chatClient,
+			@Qualifier("systemPromptAnalyzer") String systemPrompt,
 			ObjectMapper objectMapper,
 			RedisTemplate<String, Object> redisTemplate) {
 		this.chatClient = chatClient;
@@ -58,8 +58,8 @@ public class ExecutingDebuggerService {
 				if (json.startsWith("```")) {
 					json = json.replaceAll("```[a-zA-Z]*\\n?", "").replace("```", "").trim();
 				}
-				DataStepPlanError stepPlan = objectMapper.readValue(json, DataStepPlanError.class);
-				dataMessage.setStepPlanError(stepPlan);
+				DataDefects defects = objectMapper.readValue(json, DataDefects.class);
+				dataMessage.setDefects(defects);
 			} catch (Exception e) {
 				dataMessage.setMessage(content);
 			}

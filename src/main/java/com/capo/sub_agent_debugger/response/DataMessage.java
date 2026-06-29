@@ -6,6 +6,8 @@ public class DataMessage {
 	private String type;
 	private DataToolCall toolCall;
 	private DataStepPlanError stepPlanError;
+	private DataDefects defects;
+	private DataEditDefect editDefect;
 
 	public String getMessage() {
 		return message;
@@ -37,6 +39,22 @@ public class DataMessage {
 
 	public void setStepPlanError(DataStepPlanError stepPlanError) {
 		this.stepPlanError = stepPlanError;
+	}
+
+	public DataDefects getDefects() {
+		return defects;
+	}
+
+	public void setDefects(DataDefects defects) {
+		this.defects = defects;
+	}
+
+	public DataEditDefect getEditDefect() {
+		return editDefect;
+	}
+
+	public void setEditDefect(DataEditDefect editDefect) {
+		this.editDefect = editDefect;
 	}
 	
 }

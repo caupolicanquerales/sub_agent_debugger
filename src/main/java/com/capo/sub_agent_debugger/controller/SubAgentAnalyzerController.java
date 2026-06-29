@@ -12,25 +12,25 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.capo.sub_agent_debugger.request.GenerationSyntheticDataRequest;
-import com.capo.sub_agent_debugger.service.ExecutingDebuggerService;
+import com.capo.sub_agent_debugger.service.ExecutingAnalyzerService;
 import com.capo.sub_agent_debugger.utils.SseStreamUtil;
 
 
 @RestController
-@RequestMapping("sub-agent-debugger")
-public class SubAgentController {
+@RequestMapping("sub-agent-analyzer")
+public class SubAgentAnalyzerController {
 	
 	private final ExecutorService executor = Executors.newCachedThreadPool();
-	private final ExecutingDebuggerService executingDebugger;
+	private final ExecutingAnalyzerService executingDebugger;
 	
 	@Value(value="${event.name.chat}")
 	private String eventName;
 	
-	public SubAgentController(ExecutingDebuggerService executingDebugger) {
+	public SubAgentAnalyzerController(ExecutingAnalyzerService executingDebugger) {
 		this.executingDebugger= executingDebugger;
 	}
 	
-	@PostMapping(path = "/chat-stream-debugger", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+	@PostMapping(path = "/chat-stream-analyzer", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamDebuggerGeneration(@RequestBody GenerationSyntheticDataRequest request) {
 		return SseStreamUtil.stream(executor, eventName, "Executing debugger the logs",
                 () -> executingDebugger.generateExtractingOrderCommandAsync(

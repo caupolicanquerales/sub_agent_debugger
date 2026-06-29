@@ -11,18 +11,18 @@ import org.springframework.core.io.Resource;
 
 
 @Configuration
-public class AgentGeneralConfig {
+public class AgentPatchingConfig {
 	
-	@Value("classpath:prompts/system-prompt.md")
+	@Value("classpath:prompts/system-prompt-patching.md")
     private Resource systemPromptResource;
 	
 	@Bean
-    public String systemPrompt() throws IOException {
+    public String systemPromptPatching() throws IOException {
         return systemPromptResource.getContentAsString(Charset.defaultCharset());
     }
 
 	@Bean
-    public ChatClient chatClientGeneral(ChatClient.Builder builder) {
+    public ChatClient chatClientPatching(ChatClient.Builder builder) {
         return builder
     		.clone()
             .build();
