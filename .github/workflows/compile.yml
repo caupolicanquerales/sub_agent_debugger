@@ -1,34 +1,70 @@
-name: Java Compile and Test (Maven)
+name: Java Build and Docker Publish
 
-# Define what events trigger the pipeline
 on:
   push:
+    # Triggers the pipeline when you push to main or develop
     branches:
       - main
       - develop
-  pull_request:
-    branches:
-      - main
-      - develop
+    # Triggers when you push a version tag (e.g., v1.0.0)
+    tags:
+      - 'v*.*.*'
+
+env:
+  # CHANGE THIS to your exact Docker Hub repository name
+  # For example, if your repo is 'caupolicanquerales/my-app', change this to: my-app
+  DOCKER_HUB_IMAGE_NAME: sub_agent_debugger
 
 jobs:
-  build:
-    # Use the latest Ubuntu runner provided by GitHub
+  build_and_publish:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check out the repository source code
-      - name: Checkout Repository
+      # 1. Fetch the source code from GitHub
+      - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      # Step 2: Set up the Java Development Kit (JDK)
+      # 2. Install JDK and set up caching to speed up builds
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21' # Change to '17' or '11' if your project uses an older version
-          distribution: 'temurin' # Eclipse Temurin is recommended and widely used
-          cache: 'maven' # Automatically caches Maven dependencies to speed up future runs
+          java-version: '21'      # Update to '17' if your project uses Java 17
+          distribution: 'temurin'
+          cache: 'maven'          # Change to 'gradle' if your project uses Gradle
 
-      # Step 3: Compile the project and run tests
-      - name: Compile and Test with Maven
-        run: mvn clean install -DskipTests -X
+      # 3. Compile the Java project and package it into a JAR file
+      # (If using Gradle, change this line to: run: ./gradlew build)
+      - name: Compile and Package Application
+        run: mvn clean package -DskipTests
+
+      # 4. Set up Docker Buildx for modern image building features
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 5. Log in to Docker Hub using the secrets you just created
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      # 6. Automatically generate smart Docker tags based on the Git branch/tag
+      - name: Extract Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha,format=short
+
+      # 7. Build the Docker image using your Dockerfile and push it to Docker Hub
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
